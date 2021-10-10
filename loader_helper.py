@@ -4,7 +4,7 @@ from torchvision import transforms
 import numpy as np
 
 from data_declaration import MRIDataset, Task
-from data_declaration import ToTensor
+from data_declaration import FcmNormalize
 
 
 class LoaderHelper:
@@ -24,7 +24,7 @@ class LoaderHelper:
             data_path="/home/qiyuan/2021fall/camull_net/data",
             labels=self.labels,
             transform=transforms.Compose([
-                                      ToTensor(),
+                                      FcmNormalize(),
                                   ]))
 
         self.indices = []
@@ -46,7 +46,7 @@ class LoaderHelper:
         self.dataset = MRIDataset(data_path="../data/",
                                   labels=labels_in,
                                   transform=transforms.Compose([
-                                      ToTensor()])
+                                      FcmNormalize()])
                                   )
 
     def change_task(self, task: Task):
@@ -61,7 +61,7 @@ class LoaderHelper:
         self.dataset = MRIDataset(data_path="../data/",
                                   labels=self.labels,
                                   transform=transforms.Compose([
-                                      ToTensor()])
+                                      FcmNormalize()])
                                   )
 
         self.set_indices()

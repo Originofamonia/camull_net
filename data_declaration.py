@@ -118,21 +118,21 @@ class MRIDataset(Dataset):
         label = self.labels.index(img_name[:2])
 
         if self.transform is not None:
-            img = self.transform(img)  # add normalize here
+            img = self.transform(img)
 
         return img, torch.from_numpy(label).type(
             torch.FloatTensor)
 
 
-class ToTensor:
-    """Convert ndarrays in sample to Tensors."""
+class FcmNormalize:
+    """
+    add normalize here
+    https://github.com/jcreinhold/intensity-normalization
+    try FCM-based WM-based normalization
+    (assuming you have access to a T1-w image for all the time-points)
+    """
 
-    def __call__(self, sample):
-        image, clinical, label = sample['mri'], sample['clinical'], sample[
-            'label']
-        mri_t = torch.from_numpy(image) / 255.0
-        clin_t = torch.from_numpy(clinical)
-        label = torch.from_numpy(label).double()
-        return {'mri': mri_t,
-                'clin_t': clin_t,
-                'label': label}
+    def __call__(self, image):
+
+        mri_t = torch.from_numpy(image)
+        return mri_t
