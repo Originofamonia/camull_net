@@ -2,7 +2,7 @@
 iterate over the data. """
 from enum import Enum
 import glob
-import pathlib
+import os
 
 import numpy as np
 import nibabel as nib
@@ -99,59 +99,27 @@ def get_clinical(im_id, clin_df):
 class MRIDataset(Dataset):
     """Provides an object for the MRI data that can be iterated."""
 
-    def __init__(self, root_dir, labels, transform=None):
+    def __init__(self, data_path, labels, transform=None):
 
-        self.root_dir = root_dir
+        self.data_path = data_path
         self.transform = transform
-        self.directories = []
-        self.len = 0
+        self.img_names = os.listdir(data_path)
         self.labels = labels
-        # self.clin_data = pd.read_csv("../data/clinical.csv")
-        train_dirs = []
 
-        for label in labels:
-            train_dirs.append(root_dir + label)
-
-        for train_dir in train_dirs:
-            for path in glob.glob(train_dir + "/*"):
-                self.directories.append(pathlib.Path(path))
-
-        self.len = len(self.directories)
+        self.len = len(self.img_names)
 
     def __len__(self):
-
         return self.len
 
-    def __getitem__(self, idx):
+    def __getitem__(self, index):
+        img_name = self.img_names[index]
+        img = nib.load(os.path.join(
+            self.data_path, img_name)).get_fdata()
+        label = self.labels.index(img_name[:2])
 
-        if torch.is_tensor(idx):
-            idx = idx.tolist()
-
-        repeat = True
-
-        while repeat:
-            try:
-                path = self.directories[idx]
-                im_id = get_im_id(path)
-                mri = get_mri(path)
-                clinical = get_clinical(im_id, self.clin_data)
-                label = get_label(path, self.labels)
-
-                sample = {'mri': mri, 'clinical': clinical, 'label': label}
-
-                if self.transform:
-                    sample = self.transform(sample)
-
-                return sample
-
-            except IndexError as index_e:
-                print(index_e)
-                if idx < self.len:
-                    idx += 1
-                else:
-                    idx = 0
-
-        return sample
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, label
 
 
 class ToTensor:

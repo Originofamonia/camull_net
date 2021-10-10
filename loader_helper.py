@@ -20,10 +20,11 @@ class LoaderHelper:
         else:
             self.labels = ["sMCI", "pMCI"]
 
-        self.dataset = MRIDataset(root_dir="../data/",
-                                  labels=self.labels,
-                                  transform=transforms.Compose([
-                                      ToTensor()
+        self.dataset = MRIDataset(
+            data_path="/home/qiyuan/2021fall/camull_net/data",
+            labels=self.labels,
+            transform=transforms.Compose([
+                                      ToTensor(),
                                   ]))
 
         self.indices = []
@@ -42,7 +43,7 @@ class LoaderHelper:
 
     def change_ds_labels(self, labels_in):
         """Function to change the labels of the dataset obj."""
-        self.dataset = MRIDataset(root_dir="../data/",
+        self.dataset = MRIDataset(data_path="../data/",
                                   labels=labels_in,
                                   transform=transforms.Compose([
                                       ToTensor()])
@@ -57,7 +58,7 @@ class LoaderHelper:
         else:
             self.labels = ["sMCI", "pMCI"]
 
-        self.dataset = MRIDataset(root_dir="../data/",
+        self.dataset = MRIDataset(data_path="../data/",
                                   labels=self.labels,
                                   transform=transforms.Compose([
                                       ToTensor()])
