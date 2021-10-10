@@ -36,7 +36,7 @@ def evaluate_model(device_in, uuid, ld_helper):
 
     log_path = "../logs/" + uuid + ".txt"
 
-    if (os.path.exists(log_path)):
+    if os.path.exists(log_path):
         filein = open(log_path, 'a')
     else:
         filein = open(log_path, 'w')

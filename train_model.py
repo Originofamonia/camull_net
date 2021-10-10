@@ -13,12 +13,12 @@ from loader_helper import LoaderHelper
 from architecture import load_cam_model, Camull
 from evaluation import evaluate_model
 
-if torch.cuda.is_available():
-    DEVICE = torch.device("cuda:0")
-    print("Running on the GPU.")
-else:
-    DEVICE = torch.device("cpu")
-    print("Running on the CPU")
+# if torch.cuda.is_available():
+#     DEVICE = torch.device("cuda:0")
+#     print("Running on the GPU.")
+# else:
+#     DEVICE = torch.device("cpu")
+#     print("Running on the CPU")
 
 
 def save_weights(model_in, uuid_arg, fold=1, task: Task = None):
@@ -26,7 +26,7 @@ def save_weights(model_in, uuid_arg, fold=1, task: Task = None):
     # root_path = ""
 
     if task == Task.NC_v_AD:
-        root_path = "../weights/NC_v_AD/" + uuid_arg + "/"
+        root_path = "weights/NC_v_AD/" + uuid_arg + "/"
     else:
         root_path = "../weights/sMCI_v_pMCI/" + uuid_arg + "/"
 
@@ -34,7 +34,6 @@ def save_weights(model_in, uuid_arg, fold=1, task: Task = None):
         os.mkdir(root_path)  # otherwise it already exists
 
     while True:
-
         s_path = root_path + "fold_{}_weights-{date:%Y-%m-%d_%H:%M:%S}".format(
             fold, date=datetime.datetime.now())  # pylint: disable=line-too-long
 
@@ -50,14 +49,14 @@ def load_model(arch, path=None):
     # if arch == "camull":  # must be camull
     if path is None:
         model = load_cam_model(
-            "../weights/camnet/fold_0_weights-2020-04-09_18_29_02")
+            "weights/camnet/fold_0_weights-2020-04-09_18_29_02")
     else:
         model = load_cam_model(path)
 
     return model
 
 
-def build_arch():
+def build_arch(device):
     """Function for instantiating the pytorch neural network object"""
     net = Camull()
 
@@ -65,26 +64,24 @@ def build_arch():
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         net = nn.DataParallel(net)
 
-    net.to(DEVICE)
+    net.to(device)
     net.double()
 
     return net
 
 
-def train_loop(model_in, train_dl, epochs):
+def train_loop(model_in, train_dl, epochs, device):
     """Function containing the neural net model training loop"""
-    optimizer = optim.Adam(model_in.parameters(), lr=0.001, weight_decay=5e-5)
-
+    optimizer = optim.Adam(model_in.parameters(), lr=1e-3, weight_decay=5e-5)
     loss_function = nn.BCELoss()
-
     model_in.train()
 
     for i in range(epochs):
 
         for _, sample_batched in enumerate(tqdm(train_dl)):
-            batch_x = sample_batched['mri'].to(DEVICE)
-            batch_xb = sample_batched['clin_t'].to(DEVICE)
-            batch_y = sample_batched['label'].to(DEVICE)
+            batch_x = sample_batched['mri'].to(device)
+            batch_xb = sample_batched['clin_t'].to(device)
+            batch_y = sample_batched['label'].to(device)
 
             model_in.zero_grad()
             outputs = model_in((batch_x, batch_xb))
@@ -97,7 +94,7 @@ def train_loop(model_in, train_dl, epochs):
                                                          round(loss.item(), 5)))
 
 
-def train_camull(ld_helper, k_folds=5, model=None, epochs=40):
+def train_camull(ld_helper, device, k_folds=5, model=None, epochs=40):
     """The function for training the camull network"""
     task = ld_helper.get_task()
     uuid_ = uuid.uuid4().hex
@@ -106,12 +103,12 @@ def train_camull(ld_helper, k_folds=5, model=None, epochs=40):
     for k_ind in range(k_folds):
 
         if model_cop is None:
-            model = build_arch()
+            model = build_arch(device)
         else:
             model = model_cop
 
         train_dl = ld_helper.get_train_dl(k_ind)
-        train_loop(model, train_dl, epochs)
+        train_loop(model, train_dl, epochs, device)
         save_weights(model, uuid_, fold=k_ind + 1, task=task)
 
         print("Completed fold {}/{}.".format(k_ind, k_folds))
@@ -119,14 +116,14 @@ def train_camull(ld_helper, k_folds=5, model=None, epochs=40):
     return uuid_
 
 
-def start(ld_helper, epochs=40, model_uuid=None):
+def start(ld_helper, device, epochs=40, model_uuid=None):
     task = ld_helper.get_task()
     if task == Task.NC_v_AD:
-        model_uuid = train_camull(ld_helper, epochs=40)
+        model_uuid = train_camull(ld_helper, device, epochs=epochs)
     else:  # sMCI vs pMCI
         if model_uuid:
             model = load_model("camull", model_uuid)
-            model_uuid = train_camull(ld_helper, model=model, epochs=40)
+            model_uuid = train_camull(ld_helper, device, model=model, epochs=epochs)
         else:
             print("Need a model uuid")
 
@@ -138,14 +135,14 @@ def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # NC v AD
     ld_helper = LoaderHelper(task=Task.NC_v_AD)
-    model_uuid = train_camull(ld_helper, epochs=40)
-    evaluate_model(DEVICE, "c51bf83c4455416e8bc8b1ebbc8b75ca", ld_helper)
+    model_uuid = train_camull(ld_helper, device, epochs=40)
+    evaluate_model(device, "c51bf83c4455416e8bc8b1ebbc8b75ca", ld_helper)
 
-    # transfer learning for pMCI v sMCI
-    ld_helper.change_task(Task.sMCI_v_pMCI)
-    model = load_model("camull", model_uuid)
-    uuid = train_camull(ld_helper, model=model, epochs=40)
-    evaluate_model(device, uuid, ld_helper)
+    # # transfer learning for pMCI v sMCI
+    # ld_helper.change_task(Task.sMCI_v_pMCI)
+    # model = load_model("camull", model_uuid)
+    # uuid = train_camull(ld_helper, device, model=model, epochs=40)
+    # evaluate_model(device, uuid, ld_helper)
 
 
 if __name__ == '__main__':
