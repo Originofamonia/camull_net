@@ -25,7 +25,7 @@ def save_weights(model_in, uuid_arg, fold=1, task: Task = None):
     """The following function saves the weights file into required folder"""
     # root_path = ""
 
-    if task == Task.NC_v_AD:
+    if task == Task.CN_v_AD:
         root_path = "weights/NC_v_AD/" + uuid_arg + "/"
     else:
         root_path = "../weights/sMCI_v_pMCI/" + uuid_arg + "/"
@@ -118,7 +118,7 @@ def train_camull(ld_helper, device, k_folds=5, model=None, epochs=40):
 
 def start(ld_helper, device, epochs=40, model_uuid=None):
     task = ld_helper.get_task()
-    if task == Task.NC_v_AD:
+    if task == Task.CN_v_AD:
         model_uuid = train_camull(ld_helper, device, epochs=epochs)
     else:  # sMCI vs pMCI
         if model_uuid:
@@ -134,7 +134,7 @@ def main():
     """Main function of the module."""
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # NC v AD
-    ld_helper = LoaderHelper(task=Task.NC_v_AD)
+    ld_helper = LoaderHelper(task=Task.CN_v_AD)
     model_uuid = train_camull(ld_helper, device, epochs=40)
     evaluate_model(device, "c51bf83c4455416e8bc8b1ebbc8b75ca", ld_helper)
 

@@ -23,7 +23,7 @@ def train_new_model_cli():
     choice = input("Which task would you like to perform?: ")
     print("\n")
 
-    task = Task.NC_v_AD
+    task = Task.CN_v_AD
     ld_helper = LoaderHelper(task)
 
     if int(choice) == 0:

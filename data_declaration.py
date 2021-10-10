@@ -16,7 +16,7 @@ class Task(Enum):
     """
         Enum class for the two classification tasks
     """
-    NC_v_AD = 1
+    CN_v_AD = 1
     sMCI_v_pMCI = 2
 
 
@@ -118,8 +118,10 @@ class MRIDataset(Dataset):
         label = self.labels.index(img_name[:2])
 
         if self.transform is not None:
-            img = self.transform(img)
-        return img, label
+            img = self.transform(img)  # add normalize here
+
+        return img, torch.from_numpy(label).type(
+            torch.FloatTensor)
 
 
 class ToTensor:

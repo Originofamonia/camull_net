@@ -10,13 +10,13 @@ from data_declaration import ToTensor
 class LoaderHelper:
     """An abstract class for assisting with dataset creation."""
 
-    def __init__(self, task: Task = Task.NC_v_AD):
+    def __init__(self, task: Task = Task.CN_v_AD):
 
         self.task = task
         self.labels = []
 
-        if task == Task.NC_v_AD:
-            self.labels = ["NC", "AD"]
+        if task == Task.CN_v_AD:
+            self.labels = ["CN", "AD"]
         else:
             self.labels = ["sMCI", "pMCI"]
 
@@ -36,7 +36,7 @@ class LoaderHelper:
 
     def get_task_string(self):
         """Gets task string"""
-        if self.task == Task.NC_v_AD:
+        if self.task == Task.CN_v_AD:
             return "NC_v_AD"
         else:
             return "sMCI_v_pMCI"
@@ -53,7 +53,7 @@ class LoaderHelper:
         """Function to change task of the Datasets"""
         self.task = task
 
-        if task == Task.NC_v_AD:
+        if task == Task.CN_v_AD:
             self.labels = ["NC", "AD"]
         else:
             self.labels = ["sMCI", "pMCI"]
