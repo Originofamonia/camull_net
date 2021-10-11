@@ -18,11 +18,11 @@ class ConvBlock(nn.Module):
         self.dropout = nn.Dropout3d(p=0.1)
 
     def forward(self, x):
-        out = self.conv1(x)
+        out = self.dropout(x)
+        out = self.conv1(out)
         out = self.bn(out)
         out = self.elu(out)
         out = self.pool(out)
-        out = self.dropout(out)
 
         return out
 
@@ -132,11 +132,12 @@ class Camull(nn.Module):
         # out_b = self.stack1_b(mri)
         # out = torch.cat((out_a, out_b), 1)  # 1 as ind 0 is batch size
 
-        identity = out_a
+        # identity = out_a
         out = self.stack2(out_a)
-        out = out + identity
+        # out = out + identity
 
-        out = self.s3_forward(out)
+        # out = self.s3_forward(out)
+        out = self.stack3_a(out)
         out = self.flat(out)
         out = self.fc1(out)
         # out = self.cat_with_clin(out, clin)
