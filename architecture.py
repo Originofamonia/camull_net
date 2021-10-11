@@ -100,7 +100,7 @@ class Camull(nn.Module):
                                      FCBlock(32, 10))
 
         self.flat = nn.Flatten()
-        self.fc1 = FCBlock(128, 1)
+        self.fc1 = FCBlock(864, 1)
         # self.fc2 = FCBlock(10, 4)
         # self.lin = nn.Linear(4, 1)
         self.sig = nn.Sigmoid()
