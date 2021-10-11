@@ -137,6 +137,8 @@ class Camull(nn.Module):
         out = out + identity
 
         out = self.s3_forward(out)
+        out = self.flat(out)
+        out = self.fc1(out)
         # out = self.cat_with_clin(out, clin)
 
         out = self.fc2(out)
