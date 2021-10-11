@@ -78,7 +78,7 @@ class Camull(nn.Module):
         super().__init__()
 
         self.stack1 = nn.Sequential(ConvBlock(1, 24, (11, 11, 11), 2),
-                                    ConvBlock(24, 48, (5, 5, 5)))
+                                    ConvBlock(24, 96, (5, 5, 5)))
 
         self.stack1_b = nn.Sequential(ConvBlock(1, 24, (11, 11, 11), 2),
                                       ConvBlock(24, 48, (5, 5, 5)))
@@ -129,11 +129,11 @@ class Camull(nn.Module):
         # mri, clin = x
 
         out_a = self.stack1(mri)
-        out_b = self.stack1_b(mri)
-        out = torch.cat((out_a, out_b), 1)  # 1 as ind 0 is batch size
+        # out_b = self.stack1_b(mri)
+        # out = torch.cat((out_a, out_b), 1)  # 1 as ind 0 is batch size
 
-        identity = out
-        out = self.stack2(out)
+        identity = out_a
+        out = self.stack2(out_a)
         out = out + identity
 
         out = self.s3_forward(out)
