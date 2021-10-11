@@ -116,6 +116,7 @@ class MRIDataset(Dataset):
         img = nib.load(os.path.join(
             self.data_path, img_name)).get_fdata()
         label = np.array(self.labels.index(img_name[:2]))
+        label = np.expand_dims(label, axis=0)
 
         if self.transform is not None:
             img = self.transform(img)
