@@ -114,7 +114,8 @@ class MRIDataset(Dataset):
     def __getitem__(self, index):
         img_name = self.img_names[index]
         img = nib.load(os.path.join(
-            self.data_path, img_name)).get_fdata().astype(float)
+            self.data_path, img_name)).get_fdata()
+        img = img.astype(float)
         label = np.array(self.labels.index(img_name[:2]))
         label = np.expand_dims(label, axis=0)
 
