@@ -65,7 +65,7 @@ def build_arch(device):
     #     net = nn.DataParallel(net)
 
     net.to(device)
-    net.double()
+    # net.double()
 
     return net
 
