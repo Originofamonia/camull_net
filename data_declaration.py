@@ -115,14 +115,14 @@ class MRIDataset(Dataset):
         img_name = self.img_names[index]
         img = nib.load(os.path.join(
             self.data_path, img_name)).get_fdata()
-        img = img.astype(float)
+        # img = img.astype(float)  # convert to float doesn't work, strange
         label = np.array(self.labels.index(img_name[:2]))
         label = np.expand_dims(label, axis=0)
 
         if self.transform is not None:
             img = self.transform(img)
 
-        return img, torch.from_numpy(label).type(torch.FloatTensor)
+        return img, torch.from_numpy(label).type(torch.DoubleTensor)
 
 
 class FcmNormalize:
