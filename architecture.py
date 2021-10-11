@@ -65,10 +65,10 @@ class FCBlock(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
 
     def forward(self, x):
-        out = self.fc(x)
+        out = self.dropout(x)
+        out = self.fc(out)
         out = self.bn(out)
         out = self.elu(out)
-        out = self.dropout(out)
         return out
 
 
