@@ -121,8 +121,7 @@ class MRIDataset(Dataset):
         if self.transform is not None:
             img = self.transform(img)
 
-        return img, torch.from_numpy(label).type(
-            torch.FloatTensor)
+        return img, torch.from_numpy(label).type(torch.DoubleTensor)
 
 
 class FcmNormalize:
