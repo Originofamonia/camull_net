@@ -81,6 +81,7 @@ def train_loop(model_in, train_dl, epochs, device):
         for _, batch in enumerate(pbar):
             batch = tuple(item.to(device) for item in batch)
             batch_x, batch_y = batch
+            batch_x.requires_grad_()
             optimizer.zero_grad()
             outputs = model_in(batch_x)
 
