@@ -90,7 +90,7 @@ class Camull(nn.Module):
 
         # Number of channels inputted is halved to reduce number of parameters.
         # This is done to the input in the forward function.
-        self.stack3_a = nn.Sequential(ConvBlock(48, 24, (3, 3, 3)),
+        self.stack3_a = nn.Sequential(ConvBlock(96, 24, (3, 3, 3)),
                                       ConvBlock(24, 8, (3, 3, 3)))
 
         self.stack3_b = nn.Sequential(ConvBlock(48, 24, (3, 3, 3)),
@@ -107,15 +107,15 @@ class Camull(nn.Module):
 
     # Performing a grouped convolutional stack
     def s3_forward(self, x):
-        bound = int(np.floor(x.shape[1] / 2))
-        out_a = x[:, :bound]
-        out_b = x[:, bound:]
+        # bound = int(np.floor(x.shape[1] / 2))
+        # out_a = x[:, :bound]
+        # out_b = x[:, bound:]
 
-        out_a = self.stack3_a(out_a)
-        out_b = self.stack3_b(out_b)
-        out = torch.cat((out_a, out_b), 1)
+        out_a = self.stack3_a(x)
+        # out_b = self.stack3_b(out_b)
+        # out = torch.cat((out_a, out_b), 1)
 
-        return out
+        return out_a
 
     def cat_with_clin(self, x_a, x_b):
         out = self.flat(x_a)
