@@ -2,7 +2,8 @@
 import os
 import datetime
 import uuid
-from tqdm.auto import tqdm
+from tqdm import tqdm
+import pickle
 
 import torch
 import torch.nn as nn
@@ -70,49 +71,66 @@ def build_arch(device):
     return net
 
 
-def train_loop(model_in, train_dl, epochs, device):
+def train_loop(model, train_dl, epochs, device):
     """Function containing the neural net model training loop"""
-    optimizer = optim.Adam(model_in.parameters(), lr=1e-3, weight_decay=5e-5)
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=5e-5)
     loss_function = nn.BCELoss()
-    model_in.train()
+    model.train()
 
     for i in range(epochs):
         pbar = tqdm(train_dl)
         for _, batch in enumerate(pbar):
             batch = tuple(item.to(device) for item in batch)
             batch_x, batch_y = batch
-            batch_x.requires_grad_()
             optimizer.zero_grad()
-            outputs = model_in(batch_x)
+            outputs = model(batch_x)
 
             loss = loss_function(outputs, batch_y)
             loss.backward()
             optimizer.step()
+            pbar.set_description(f'E: {i}/{epochs}, loss: {loss.item():.3f}')
 
-        tqdm.write("Epoch: {}/{}, train loss: {}".format(i, epochs,
-                                                         round(loss.item(), 5)))
+    return model
 
 
-def train_camull(ld_helper, device, k_folds=5, model=None, epochs=40):
+def train_camull(ld_helper, device, epochs, model=None):
     """The function for training the camull network"""
     task = ld_helper.get_task()
     uuid_ = uuid.uuid4().hex
-    model_cop = model
+    # model_cop = model
 
-    for k_ind in range(k_folds):
+    # for k_ind in range(k_folds):
 
-        if model_cop is None:
-            model = build_arch(device)
-        else:
-            model = model_cop
+    if model is None:
+        model = build_arch(device)
 
-        train_dl = ld_helper.get_train_dl(k_ind)
-        train_loop(model, train_dl, epochs, device)
-        save_weights(model, uuid_, fold=k_ind + 1, task=task)
+    train_dl = ld_helper.get_train_dl()
+    test_dl = ld_helper.get_test_dl()
+    model = train_loop(model, train_dl, epochs, device)
+    # save_weights(model, uuid_, fold=k_ind + 1, task=task)
+    evaluate(device, model, test_dl)
 
-        print("Completed fold {}/{}.".format(k_ind, k_folds))
+    print("Completed train_camull.")
 
-    return uuid_
+    return model
+
+
+def evaluate(device, model, test_dl):
+    model.eval()
+    pbar = tqdm(test_dl)
+    outputs = []
+    targets = []
+    for _, batch in enumerate(pbar):
+        batch = tuple(item.to(device) for item in batch)
+        batch_x, batch_y = batch
+        output = model(batch_x)
+        outputs.append(output.item())
+        targets.append(batch_y.item())
+        pbar.set_description(f'Evaluate')
+
+    print(f'targets: {targets}')
+    print(f'outputs: {outputs}')
+    pickle.dump([outputs, targets], open('evaluate.pkl', 'wb'))
 
 
 def start(ld_helper, device, epochs=40, model_uuid=None):
@@ -132,10 +150,9 @@ def start(ld_helper, device, epochs=40, model_uuid=None):
 def main():
     """Main function of the module."""
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    # NC v AD
+    # CN v AD
     ld_helper = LoaderHelper(task=Task.CN_v_AD)
-    model_uuid = train_camull(ld_helper, device, epochs=40)
-    evaluate_model(device, "c51bf83c4455416e8bc8b1ebbc8b75ca", ld_helper)
+    model = train_camull(ld_helper, device, epochs=4)
 
     # # transfer learning for pMCI v sMCI
     # ld_helper.change_task(Task.sMCI_v_pMCI)
