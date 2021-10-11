@@ -125,8 +125,8 @@ class Camull(nn.Module):
 
         return out
 
-    def forward(self, x):
-        mri, clin = x
+    def forward(self, mri):
+        # mri, clin = x
 
         out_a = self.stack1(mri)
         out_b = self.stack1_b(mri)
@@ -137,7 +137,7 @@ class Camull(nn.Module):
         out = out + identity
 
         out = self.s3_forward(out)
-        out = self.cat_with_clin(out, clin)
+        # out = self.cat_with_clin(out, clin)
 
         out = self.fc2(out)
         out = self.lin(out)

@@ -77,14 +77,12 @@ def train_loop(model_in, train_dl, epochs, device):
     model_in.train()
 
     for i in range(epochs):
-
-        for _, sample_batched in enumerate(tqdm(train_dl)):
-            batch_x = sample_batched['mri'].to(device)
-            batch_xb = sample_batched['clin_t'].to(device)
-            batch_y = sample_batched['label'].to(device)
-
+        pbar = tqdm(train_dl)
+        for _, batch in enumerate(pbar):
+            batch = tuple(item.to(device) for item in batch)
+            batch_x, batch_y = batch
             model_in.zero_grad()
-            outputs = model_in((batch_x, batch_xb))
+            outputs = model_in(batch_x)
 
             loss = loss_function(outputs, batch_y)
             loss.backward()
