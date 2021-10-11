@@ -83,12 +83,12 @@ class Camull(nn.Module):
         self.stack1_b = nn.Sequential(ConvBlock(1, 24, (11, 11, 11), 2),
                                       ConvBlock(24, 48, (5, 5, 5)))
 
-        # seperable convolutions
+        # separable convolutions
         self.stack2 = nn.Sequential(ConvBlock2(96, [3, 3, 3]),
                                     ConvBlock2(96, [3, 3, 3]),
                                     ConvBlock2(96, [3, 3, 3]))
 
-        # Number of channels inputted is halfed to reduce number of parameters.
+        # Number of channels inputted is halved to reduce number of parameters.
         # This is done to the input in the forward function.
         self.stack3_a = nn.Sequential(ConvBlock(48, 24, (3, 3, 3)),
                                       ConvBlock(24, 8, (3, 3, 3)))
@@ -100,9 +100,9 @@ class Camull(nn.Module):
                                      FCBlock(32, 10))
 
         self.flat = nn.Flatten()
-        self.fc1 = FCBlock(128, 10)
-        self.fc2 = FCBlock(10, 4)
-        self.lin = nn.Linear(4, 1)
+        self.fc1 = FCBlock(128, 1)
+        # self.fc2 = FCBlock(10, 4)
+        # self.lin = nn.Linear(4, 1)
         self.sig = nn.Sigmoid()
 
     # Performing a grouped convolutional stack
@@ -141,8 +141,8 @@ class Camull(nn.Module):
         out = self.fc1(out)
         # out = self.cat_with_clin(out, clin)
 
-        out = self.fc2(out)
-        out = self.lin(out)
+        # out = self.fc2(out)
+        # out = self.lin(out)
         out = self.sig(out)
 
         return out
