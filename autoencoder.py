@@ -337,6 +337,7 @@ def main():
          ('decoder', decoder),
          ]
     )).to(device)
+    model.double()
     # if os.path.exists(saving_name.replace(".pth", ".csv")):
     #     model.load_state_dict(torch.load(saving_name))
     #     model.eval()
