@@ -215,7 +215,7 @@ class Decoder2D(nn.Module):
         self.norm66 = nn.BatchNorm2d(num_features=66)
 
     def forward(self, x):
-        reshaped = x.view(-1, 512, 1, 1)
+        reshaped = x.view(-1, self.in_channels[0], 1, 1)
 
         out1 = self.norm512(self.convT2d_512_512(reshaped))
         out1 = self.norm512(self.convT2d_512_512(out1))
