@@ -264,16 +264,17 @@ def train_loop(net, lr, dataloader, device, n_epochs):
     for epoch in range(n_epochs):
         train_loss = 0.
         net.train()
-        for ii, (batch, _) in enumerate(pbar):
+        for ii, batch in enumerate(pbar):
             # if ii + 1 < len(dataloader):
             # load the data to memory
-            inputs = batch.to(device)
+            batch = tuple(item.to(device) for item in batch)
+            batch_x, batch_y = batch
             # one of the most important step, reset the gradients
             optimizer.zero_grad()
             # compute the outputs
-            outputs = net(inputs.permute(0, 3, 1, 2))
+            outputs = net(batch_x)
             # compute the losses
-            loss_batch = loss_func(outputs, inputs.permute(0, 3, 1, 2), )
+            loss_batch = loss_func(outputs, batch_x)
             loss_batch += 0.01 * torch.norm(outputs, 1)
             selected_params = torch.cat([x.view(-1) for x in net.parameters()])
             loss_batch += 0.01 * torch.norm(selected_params, 1)
@@ -294,17 +295,17 @@ def validation_loop(model, dataloader, device):
     model.eval()
     with no_grad():
         valid_loss = 0.
-        for ii, (batch, _) in tqdm(enumerate(dataloader)):
-            if ii + 1 < len(dataloader):
-                # load the data to memory
-                inputs = Variable(batch).to(device)
-                # compute the outputs
-                outputs = model(inputs.permute(0, 3, 1, 2))
-                # compute the losses
-                loss_batch = loss_func(outputs, inputs.permute(0, 3, 1, 2), )
-                # record the validation loss of a mini-batch
-                valid_loss += loss_batch.data
-                denominator = ii
+        for ii, batch in tqdm(enumerate(dataloader)):
+            # load the data to memory
+            batch = tuple(item.to(device) for item in batch)
+            batch_x, batch_y = batch
+            # compute the outputs
+            outputs = model(batch_x)
+            # compute the losses
+            loss_batch = loss_func(outputs, batch_x)
+            # record the validation loss of a mini-batch
+            valid_loss += loss_batch.data
+            denominator = ii
         valid_loss = valid_loss / (denominator + 1)
     print(f'validation loss = {valid_loss:.3f}')
     return valid_loss
