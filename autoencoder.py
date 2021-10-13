@@ -293,7 +293,7 @@ def validation_loop(model, dataloader, device):
     # specify the gradient being frozen
     loss_func = nn.SmoothL1Loss()
     model.eval()
-    with no_grad():
+    with torch.no_grad():
         valid_loss = 0.
         for ii, batch in tqdm(enumerate(dataloader)):
             # load the data to memory
