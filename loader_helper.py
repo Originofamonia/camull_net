@@ -110,18 +110,18 @@ class LoaderHelper:
 
         return train_dl, test_dl
 
-    def get_train_dl(self, shuffle=True):
+    def get_train_dl(self, batch_size=2, shuffle=True):
 
         # train_ds = Subset(self.dataset, self.indices[fold_ind][0])
-        train_dl = DataLoader(self.dataset, batch_size=2, shuffle=shuffle,
-                              num_workers=2, drop_last=True)
+        train_dl = DataLoader(self.dataset, batch_size=batch_size,
+                              shuffle=shuffle, num_workers=2, drop_last=True)
 
         return train_dl
 
-    def get_test_dl(self, shuffle=False):
+    def get_test_dl(self, batch_size=1, shuffle=False):
 
         # test_ds = Subset(self.dataset, self.indices[fold_ind][1])
-        test_dl = DataLoader(self.dataset, batch_size=1, shuffle=shuffle,
-                             num_workers=2, drop_last=True)
+        test_dl = DataLoader(self.dataset, batch_size=batch_size,
+                             shuffle=shuffle, num_workers=2, drop_last=True)
 
         return test_dl

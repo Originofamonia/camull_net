@@ -104,8 +104,8 @@ def train_camull(ld_helper, device, epochs, model=None):
     if model is None:
         model = build_arch(device)
 
-    train_dl = ld_helper.get_train_dl()
-    test_dl = ld_helper.get_test_dl()
+    train_dl = ld_helper.get_train_dl(batch_size=2)
+    test_dl = ld_helper.get_test_dl(batch_size=1)
     model = train_loop(model, train_dl, epochs, device)
     # save_weights(model, uuid_, fold=k_ind + 1, task=task)
     evaluate(device, model, test_dl)
