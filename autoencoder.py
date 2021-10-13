@@ -49,7 +49,7 @@ class Encoder2D(nn.Module):
                  out_channels=None,
                  kernel_size=3,
                  stride=1,
-                 padding_mode='valid',
+                 padding_mode='zeros',
                  pool_kernal_size=2,
                  ):
         super(Encoder2D, self).__init__()
