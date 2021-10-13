@@ -58,7 +58,7 @@ class Encoder2D(nn.Module):
         if out_channels is None:
             out_channels = [128, 256, 512]
         if in_channels is None:
-            in_channels = [66, 128, 256, 512]
+            in_channels = [166, 128, 256, 512]
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
@@ -152,9 +152,9 @@ class Decoder2D(nn.Module):
 
         # self.batch_size = batch_size
         if out_channels is None:
-            out_channels = [512, 256, 128, 66]
+            out_channels = [512, 256, 128, 166]
         if in_channels is None:
-            in_channels = [512, 256, 128, 66]
+            in_channels = [512, 256, 128, 166]
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
