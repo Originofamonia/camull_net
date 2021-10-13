@@ -329,8 +329,8 @@ def main():
     train_dl = ld_helper.get_train_dl(batch_size=batch_size)
     test_dl = ld_helper.get_test_dl(batch_size=1)
     print('set up model')
-    encoder = Encoder2D(batch_size=batch_size)
-    decoder = Decoder2D(batch_size=batch_size)
+    encoder = Encoder2D()
+    decoder = Decoder2D()
     model = nn.Sequential(OrderedDict(
         [('encoder', encoder),
          ('decoder', decoder),
