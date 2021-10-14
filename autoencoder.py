@@ -3,7 +3,7 @@ https://github.com/nmningmei/BOLD5000_autoencoder/blob/master/scripts/3.1.simple
 """
 
 import os
-from glob import glob
+import math
 from tqdm import tqdm
 from argparse import ArgumentParser
 from sklearn.linear_model import LogisticRegression
@@ -15,7 +15,7 @@ import torch.nn.functional as F
 from torch import optim
 from torch.autograd import Variable
 
-from torch.utils.data import DataLoader
+from torch.optim import lr_scheduler
 from collections import OrderedDict
 import torch
 import numpy as np
@@ -261,13 +261,13 @@ class VAE(nn.Module):
         return reconstruction, mu, log_var
 
 
-def createLossAndOptimizer(net, learning_rate=1e-3):
+def createLossAndOptimizer(args, net):
     # Loss function
     loss = nn.SmoothL1Loss()
 
     # Optimizer
-    optimizer = optim.Adam(net.parameters(), lr=learning_rate,
-                           weight_decay=1e-9)
+    optimizer = optim.Adam(net.parameters(), lr=args.lr,
+                           weight_decay=args.weight_decay)
 
     return loss, optimizer
 
@@ -276,7 +276,10 @@ def train_ae(args, net, dataloader):
     """
     train the autoencoder
     """
-    loss_func, optimizer = createLossAndOptimizer(net, learning_rate=args.lr)
+    loss_func, optimizer = createLossAndOptimizer(args, net)
+    lf = lambda x: ((1 + math.cos(x * math.pi / args.n_epochs)) / 2) * (
+                1 - args.lrf) + args.lrf  # cosine
+    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
     pbar = tqdm(dataloader)
     for epoch in range(args.n_epochs):
         train_loss = 0.
@@ -304,6 +307,7 @@ def train_ae(args, net, dataloader):
             pbar.set_description(f'Epoch {epoch}/{args.n_epochs},loss = {train_loss / (ii + 1):.3f}')
         print(
             f'Epoch {epoch}/{args.n_epochs},loss = {train_loss / (ii + 1):.3f}')
+        scheduler.step()
     return net
 
 
@@ -351,6 +355,8 @@ def main():
     parser.add_argument('--gpus', type=int, default=None)
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--lrf', type=float, default=0.05)
+    parser.add_argument('--weight_decay', type=float, default=5e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=444)
     parser.add_argument('--n_epochs', type=int, default=100)
