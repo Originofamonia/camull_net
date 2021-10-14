@@ -128,7 +128,7 @@ class Decoder2D(nn.Module):
     def __init__(self,
                  in_channels=None,
                  out_channels=None,
-                 kernel_size=4,
+                 kernel_size=3,
                  stride=2,
                  padding_mode='zeros', ):
         super(Decoder2D, self).__init__()
@@ -147,7 +147,7 @@ class Decoder2D(nn.Module):
         self.convT2d_512_512 = nn.ConvTranspose2d(
             in_channels=self.in_channels[0],
             out_channels=self.out_channels[0],
-            kernel_size=(2, 2),
+            kernel_size=(3, 3),
             stride=self.stride,
             padding_mode=self.padding_mode, )
         self.convT2d_512_256 = nn.ConvTranspose2d(
