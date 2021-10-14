@@ -6,8 +6,8 @@ import os
 from glob import glob
 from tqdm import tqdm
 from torch.utils.data import Dataset
-from nibabel import load as load_fmri
-from scipy.stats import scoreatpercentile
+from sklearn.linear_model import LogisticRegression
+import pickle
 
 import torch
 from torch import nn, no_grad
@@ -290,17 +290,24 @@ def train_loop(net, lr, dataloader, device, n_epochs):
 
 
 def validation_loop(model, dataloader, device):
-    # specify the gradient being frozen
+    """
+    infer features from AE and then classify by logistic regression
+    """
     loss_func = nn.SmoothL1Loss()
     model.eval()
+    feats = []
+    labels = []
+    valid_loss = 0.
     with torch.no_grad():
-        valid_loss = 0.
         for ii, batch in tqdm(enumerate(dataloader)):
             # load the data to memory
             batch = tuple(item.to(device) for item in batch)
             batch_x, batch_y = batch
             # compute the outputs
-            outputs = model(batch_x)
+            feat = model.encoder(batch_x)
+            feats.append(feat.detach().cpu().numpy())
+            labels.append(batch_y.detach().cpu().numpy())
+            outputs = model.decoder(feat)
             # compute the losses
             loss_batch = loss_func(outputs, batch_x)
             # record the validation loss of a mini-batch
@@ -308,14 +315,22 @@ def validation_loop(model, dataloader, device):
             denominator = ii
         valid_loss = valid_loss / (denominator + 1)
     print(f'validation loss = {valid_loss:.3f}')
+    feats = np.array(feats)
+    labels = np.array(labels)
+    clf = LogisticRegression(random_state=0).fit(feats, labels)
+    preds = clf.predict(feats)
+    print(f"preds: {preds}")
+    print(f"labels: {labels}")
+    acc = clf.score(feats, labels)
+    print(f"LR acc: {acc}")
     return valid_loss
 
 
 def main():
-    saving_name = '../results/simple_autoencoder2D.pth'
+    saving_name = 'results/autoencoder2D.pt'
 
     batch_size = 2
-    lr = 1e-5  # was 1e-5
+    lr = 1e-4  # was 1e-5
     n_epochs = 20
     seed = 444
     print(f'set up random seeds: {seed}')
