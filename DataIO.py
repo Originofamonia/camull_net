@@ -19,10 +19,10 @@ def main():
             img = nib.load(os.path.join(
                 data_path, img_name)).get_fdata()  # load the MRI file
             normed_img = fcm_norm(img, modality="t1")
-            mus.append(img.mean(axis=(0, 1, 2)))
-            stds.append(img.std(axis=(0, 1, 2)))
-            OrthoSlicer3D(img).show()  # uncommnet if u want to visualize the MRI image
-            print('img dimension is ', img.shape)
+            mus.append(normed_img.mean(axis=(0, 1, 2)))
+            stds.append(normed_img.std(axis=(0, 1, 2)))
+            # OrthoSlicer3D(img).show()  # uncommnet if u want to visualize the MRI image
+            # print('img dimension is ', img.shape)
             # np.save(img_name[0:-7], img)  # save as numpy format
             # img_numpy = np.load(img_name[0:-7] + '.npy')  # load the npy file
         else:

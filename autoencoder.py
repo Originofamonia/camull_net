@@ -322,7 +322,7 @@ def evaluate_ae(args, model, test_dl):
             batch_x, batch_y = batch
             # compute the outputs
             feat = model.encoder(batch_x)
-            print(feat)
+            # print(feat)
             feats.append(feat.squeeze().detach().cpu().numpy())
             labels.append(batch_y.squeeze().detach().cpu().numpy())
             outputs = model.decoder(feat)
@@ -348,11 +348,11 @@ def main():
     saving_name = 'results/autoencoder2D.pt'
     parser = ArgumentParser()
     parser.add_argument('--gpus', type=int, default=None)
-    parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=444)
-    parser.add_argument('--n_epochs', type=int, default=100)
+    parser.add_argument('--n_epochs', type=int, default=10)
 
     args = parser.parse_args()
     # batch_size = 4

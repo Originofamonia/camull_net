@@ -130,6 +130,7 @@ class FcmNormalize:
     """
     add normalize here
     https://github.com/jcreinhold/intensity-normalization
+    https://blog.csdn.net/gefeng1209/article/details/90414604
     try FCM-based WM-based normalization
     (assuming you have access to a T1-w image for all the time-points)
     """
@@ -137,9 +138,9 @@ class FcmNormalize:
         self.fcm_norm = FCMNormalize(tissue_type="wm")
 
     def __call__(self, image):
+        data = self.fcm_norm(image, modality="t1")
         # data -= 7392.85  # mu
         # data /= 20195.98  # std
-        data = self.fcm_norm(image, modality="t1")
         data = torch.from_numpy(data)
 
         return data
