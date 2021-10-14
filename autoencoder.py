@@ -24,7 +24,7 @@ import pandas as pd
 from data_declaration import Task
 from loader_helper import LoaderHelper
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 
 class Encoder2D(nn.Module):
