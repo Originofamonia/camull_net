@@ -31,7 +31,7 @@ class Encoder2D(nn.Module):
     def __init__(self,
                  in_channels=None,
                  out_channels=None,
-                 kernel_size=3,
+                 kernel_size=4,
                  stride=2,
                  padding_mode='zeros',
                  pool_kernal_size=2,
@@ -128,7 +128,7 @@ class Decoder2D(nn.Module):
     def __init__(self,
                  in_channels=None,
                  out_channels=None,
-                 kernel_size=3,
+                 kernel_size=4,
                  stride=2,
                  padding_mode='zeros', ):
         super(Decoder2D, self).__init__()
