@@ -301,6 +301,7 @@ def train_ae(args, net, dataloader):
             optimizer.step()
             # record the training loss of a mini-batch
             train_loss += loss_batch.item()
+            pbar.set_description(f'Epoch {epoch}/{args.n_epochs},loss = {train_loss / (ii + 1):.3f}')
         print(
             f'Epoch {epoch}/{args.n_epochs},loss = {train_loss / (ii + 1):.3f}')
     return net
@@ -355,11 +356,8 @@ def main():
     parser.add_argument('--n_epochs', type=int, default=10)
 
     args = parser.parse_args()
-    # batch_size = 4
-    # lr = 1e-4  # was 1e-5
-    # n_epochs = 100
-    # seed = 444
-    print(f'set up random seeds: {args.seed}')
+    print(args)
+
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
@@ -379,30 +377,12 @@ def main():
          ]
     )).to(args.device)
     model.double()
-    # if os.path.exists(saving_name.replace(".pth", ".csv")):
-    #     model.load_state_dict(torch.load(saving_name))
-    #     model.eval()
-    #     results = pd.read_csv(saving_name.replace(".pth", ".csv"))
-    #     results = {col_name: list(results[col_name].values) for col_name in
-    #                results.columns}
-    #     best_valid_loss = torch.tensor(results['valid_loss'][-1],
-    #                                    dtype=torch.float64)
-    #     stp = 1 + len(results['valid_loss'])
-    # else:
-    print('Initialize')
-    results = dict(
-        train_loss=[],
-        valid_loss=[],
-        epochs=[])
-    best_valid_loss = torch.from_numpy(np.array(np.inf))
-    # stp = 1
 
     model = train_ae(args, model, train_dl)
     # validation
-    print('validating ...')
-    valid_loss = evaluate_ae(args, model, test_dl)
+    print('Validating:')
+    evaluate_ae(args, model, test_dl)
     torch.save(model.state_dict(), saving_name)
-    print('saving model')
 
 
 if __name__ == '__main__':
