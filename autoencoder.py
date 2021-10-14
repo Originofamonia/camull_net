@@ -284,7 +284,7 @@ def train_loop(net, lr, dataloader, device, n_epochs):
             optimizer.step()
             # record the training loss of a mini-batch
             train_loss += loss_batch.item()
-            pbar.set_description(
+            print(
                 f'Epoch {epoch}/{n_epochs},loss = {train_loss / (ii + 1):.3f}')
     return net
 
