@@ -119,6 +119,7 @@ class MRIDataset(Dataset):
         img = np.load(img_name)
         # img = img.astype(float)  # convert to float doesn't work, strange
         label = np.array(self.labels.index(img_name.split('/')[-1][:2]))
+
         label = np.expand_dims(label, axis=0)
 
         if self.transform is not None:
@@ -143,5 +144,5 @@ class FcmNormalize:
         data -= 0.098  # mu
         data /= 0.273  # std
         data = torch.from_numpy(data)
-
+        data = torch.unsqueeze(data, dim=1)  # for conv3D
         return data

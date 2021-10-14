@@ -152,7 +152,7 @@ def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # CN v AD
     ld_helper = LoaderHelper(task=Task.CN_v_AD)
-    model = train_camull(ld_helper, device, epochs=4)
+    model = train_camull(ld_helper, device, epochs=40)
 
     # # transfer learning for pMCI v sMCI
     # ld_helper.change_task(Task.sMCI_v_pMCI)
