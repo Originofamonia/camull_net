@@ -106,13 +106,12 @@ class Encoder2D(nn.Module):
         self.activation = nn.CELU(inplace=True)
         self.output_activation = nn.Sigmoid()
         self.pooling = nn.AvgPool2d(kernel_size=self.pool_kernal_size,
-                                    stride=2,
-                                    )
+                                    stride=2,)
         self.output_pooling = nn.AdaptiveAvgPool2d(output_size=(1, 1))
         self.norm128 = nn.BatchNorm2d(num_features=128)
         self.norm256 = nn.BatchNorm2d(num_features=256)
         self.norm512 = nn.BatchNorm2d(num_features=512)
-        self.dropout = nn.Dropout2d(p=0.5)
+        self.dropout = nn.Dropout2d(p=0.4)
 
     def forward(self, x):
         out1 = self.norm128(self.conv2d_66_128(x))
@@ -120,21 +119,21 @@ class Encoder2D(nn.Module):
         out1 = self.dropout(out1)
         out1 = self.norm128(self.conv2d_128_128(out1))
         out1 = self.activation(out1)
-        out1 = self.pooling(out1)
+        # out1 = self.pooling(out1)
 
         out2 = self.norm256(self.conv2d_128_256(out1))
         out2 = self.activation(out2)
         out2 = self.dropout(out2)
         out2 = self.norm256(self.conv2d_256_256(out2))
         out2 = self.activation(out2)
-        out2 = self.pooling(out2)
+        # out2 = self.pooling(out2)
 
         out3 = self.norm512(self.conv2d_256_512(out2))
         out3 = self.activation(out3)
         out3 = self.dropout(out3)
         out3 = self.norm512(self.conv2d_512_512(out3))
         out3 = self.output_activation(out3)
-        out3 = self.pooling(out3)
+        # out3 = self.pooling(out3)
 
         flatten = torch.squeeze(self.output_pooling(out3))
 
@@ -205,7 +204,7 @@ class Decoder2D(nn.Module):
                                                     3],
                                                 kernel_size=self.kernel_size,
                                                 stride=self.stride,
-                                                padding_mode=self.padding_mode,)
+                                                padding_mode=self.padding_mode, )
 
         self.activation = nn.CELU(inplace=True)
         self.output_activation = nn.Sigmoid()
@@ -221,13 +220,13 @@ class Decoder2D(nn.Module):
         out1 = self.norm512(self.convT2d_512_512(out1))
         out1 = self.norm256(self.convT2d_512_256(out1))
         out1 = self.activation(out1)
-        out1 = F.interpolate(out1, size=(24, 24))
+        # out1 = F.interpolate(out1, size=(24, 24))
 
         out2 = self.norm256(self.convT2d_256_256(out1))
         out2 = self.norm256(self.convT2d_256_256(out2))
         out2 = self.norm128(self.convT2d_256_128(out2))
         out2 = self.activation(out2)
-        out2 = F.interpolate(out2, size=(48, 48))
+        # out2 = F.interpolate(out2, size=(48, 48))
 
         out3 = self.norm128(self.convT2d_128_128(out2))
         out3 = self.norm128(self.convT2d_128_128(out3))
@@ -239,10 +238,43 @@ class Decoder2D(nn.Module):
         out4 = self.norm66(self.convT2d_66_66(out4))
         out4 = self.norm66(self.convT2d_66_66(out4))
         out4 = self.activation(out4)
-        out4 = F.interpolate(out4, size=(256, 256))
+        # out4 = F.interpolate(out4, size=(256, 256))
 
         return out4
 
+
+class VAE(nn.Module):
+    def __init__(self):
+        super(VAE, self).__init__()
+        self.encoder = Encoder2D()
+        self.decoder = Decoder2D()
+
+    def reparameterize(self, mu, log_var):
+        """
+        :param mu: mean from the encoder's latent space
+        :param log_var: log variance from the encoder's latent space
+        """
+        std = torch.exp(0.5 * log_var)  # standard deviation
+        eps = torch.randn_like(std)  # `randn_like` as we need the same size
+        sample = mu + (eps * std)  # sampling as if coming from the input space
+        return sample
+
+    def forward(self, x):
+        # encoding
+
+        x = self.encoder(x).view(-1, 2, -1)
+
+        # get `mu` and `log_var`
+        mu = x[:, 0, :]  # the first feature values as mean
+        log_var = x[:, 1, :]  # the other feature values as variance
+
+        # get the latent vector through reparameterization
+        z = self.reparameterize(mu, log_var)
+
+        # decoding
+        x = F.relu(self.dec1(z))
+        reconstruction = torch.sigmoid(self.dec2(x))
+        return reconstruction, mu, log_var
 
 def createLossAndOptimizer(net, learning_rate=1e-3):
     # Loss function
@@ -284,8 +316,8 @@ def train_loop(net, lr, dataloader, device, n_epochs):
             optimizer.step()
             # record the training loss of a mini-batch
             train_loss += loss_batch.item()
-            print(
-                f'Epoch {epoch}/{n_epochs},loss = {train_loss / (ii + 1):.3f}')
+        print(
+            f'Epoch {epoch}/{n_epochs},loss = {train_loss / (ii + 1):.3f}')
     return net
 
 
