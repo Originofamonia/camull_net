@@ -104,7 +104,7 @@ class MRIDataset(Dataset):
 
         self.data_path = data_path
         self.transform = transform
-        self.img_names = os.listdir(data_path)
+        self.img_names = glob.glob(f'{data_path}/*.npy')
         self.labels = labels
 
         self.len = len(self.img_names)
@@ -114,8 +114,9 @@ class MRIDataset(Dataset):
 
     def __getitem__(self, index):
         img_name = self.img_names[index]
-        img = nib.load(os.path.join(
-            self.data_path, img_name)).get_fdata()
+        # img = nib.load(os.path.join(
+        #     self.data_path, img_name)).get_fdata()
+        img = np.load(img_name)
         # img = img.astype(float)  # convert to float doesn't work, strange
         label = np.array(self.labels.index(img_name[:2]))
         label = np.expand_dims(label, axis=0)
@@ -134,13 +135,13 @@ class FcmNormalize:
     try FCM-based WM-based normalization
     (assuming you have access to a T1-w image for all the time-points)
     """
-    def __init__(self):
-        self.fcm_norm = FCMNormalize(tissue_type="wm")
+    # def __init__(self):
+    #     self.fcm_norm = FCMNormalize(tissue_type="wm")
 
-    def __call__(self, image):
-        data = self.fcm_norm(image, modality="t1")
-        # data -= 0.098  # mu
-        # data /= 0.273  # std
+    def __call__(self, data):
+        # data = self.fcm_norm(image, modality="t1")
+        data -= 0.098  # mu
+        data /= 0.273  # std
         data = torch.from_numpy(data)
 
         return data
