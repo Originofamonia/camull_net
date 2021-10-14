@@ -305,6 +305,7 @@ def validation_loop(model, dataloader, device):
             batch_x, batch_y = batch
             # compute the outputs
             feat = model.encoder(batch_x)
+            print(feat.size())
             feats.append(feat.detach().cpu().numpy())
             labels.append(batch_y.detach().cpu().numpy())
             outputs = model.decoder(feat)
