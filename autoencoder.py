@@ -349,7 +349,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('--gpus', type=int, default=None)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=444)
     parser.add_argument('--n_epochs', type=int, default=10)
