@@ -331,7 +331,7 @@ def main():
 
     batch_size = 2
     lr = 1e-4  # was 1e-5
-    n_epochs = 20
+    n_epochs = 1
     seed = 444
     print(f'set up random seeds: {seed}')
     torch.manual_seed(seed)
