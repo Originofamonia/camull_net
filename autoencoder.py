@@ -285,7 +285,6 @@ def train_ae(args, net, dataloader):
         train_loss = 0.
         net.train()
         for ii, batch in enumerate(pbar):
-            # if ii + 1 < len(dataloader):
             # load the data to memory
             batch = tuple(item.to(args.device) for item in batch)
             batch_x, batch_y = batch
@@ -353,13 +352,13 @@ def main():
     saving_name = 'results/autoencoder2D.pt'
     parser = ArgumentParser()
     parser.add_argument('--gpus', type=int, default=None)
-    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--lrf', type=float, default=0.05)
     parser.add_argument('--weight_decay', type=float, default=5e-4)
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--seed', type=int, default=444)
-    parser.add_argument('--n_epochs', type=int, default=100)
+    parser.add_argument('--n_epochs', type=int, default=60)
 
     args = parser.parse_args()
     print(args)
