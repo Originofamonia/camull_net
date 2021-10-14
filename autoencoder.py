@@ -32,7 +32,7 @@ class Encoder2D(nn.Module):
                  in_channels=None,
                  out_channels=None,
                  kernel_size=3,
-                 stride=1,
+                 stride=2,
                  padding_mode='zeros',
                  pool_kernal_size=2,
                  ):
@@ -128,8 +128,8 @@ class Decoder2D(nn.Module):
     def __init__(self,
                  in_channels=None,
                  out_channels=None,
-                 kernel_size=7,
-                 stride=1,
+                 kernel_size=3,
+                 stride=2,
                  padding_mode='zeros', ):
         super(Decoder2D, self).__init__()
 
