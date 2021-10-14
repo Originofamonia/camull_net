@@ -31,8 +31,8 @@ class Encoder2D(nn.Module):
     def __init__(self,
                  in_channels=None,
                  out_channels=None,
-                 kernel_size=4,
-                 stride=2,
+                 kernel_size=3,
+                 stride=1,
                  padding_mode='zeros',
                  pool_kernal_size=2,
                  ):
@@ -103,21 +103,21 @@ class Encoder2D(nn.Module):
         out1 = self.dropout(out1)
         out1 = self.norm128(self.conv2d_128_128(out1))
         out1 = self.activation(out1)
-        # out1 = self.pooling(out1)
+        out1 = self.pooling(out1)
 
         out2 = self.norm256(self.conv2d_128_256(out1))
         out2 = self.activation(out2)
         out2 = self.dropout(out2)
         out2 = self.norm256(self.conv2d_256_256(out2))
         out2 = self.activation(out2)
-        # out2 = self.pooling(out2)
+        out2 = self.pooling(out2)
 
         out3 = self.norm512(self.conv2d_256_512(out2))
         out3 = self.activation(out3)
         out3 = self.dropout(out3)
         out3 = self.norm512(self.conv2d_512_512(out3))
         out3 = self.output_activation(out3)
-        # out3 = self.pooling(out3)
+        out3 = self.pooling(out3)
 
         flatten = torch.squeeze(self.output_pooling(out3))
 
@@ -128,8 +128,8 @@ class Decoder2D(nn.Module):
     def __init__(self,
                  in_channels=None,
                  out_channels=None,
-                 kernel_size=3,
-                 stride=2,
+                 kernel_size=7,
+                 stride=1,
                  padding_mode='zeros', ):
         super(Decoder2D, self).__init__()
 
@@ -147,7 +147,7 @@ class Decoder2D(nn.Module):
         self.convT2d_512_512 = nn.ConvTranspose2d(
             in_channels=self.in_channels[0],
             out_channels=self.out_channels[0],
-            kernel_size=(3, 3),
+            kernel_size=self.kernel_size,
             stride=self.stride,
             padding_mode=self.padding_mode, )
         self.convT2d_512_256 = nn.ConvTranspose2d(
@@ -201,28 +201,28 @@ class Decoder2D(nn.Module):
         reshaped = x.view(-1, self.in_channels[0], 1, 1)
 
         out1 = self.norm512(self.convT2d_512_512(reshaped))
-        # out1 = self.norm512(self.convT2d_512_512(out1))
+        out1 = self.norm512(self.convT2d_512_512(out1))
         out1 = self.norm256(self.convT2d_512_256(out1))
         out1 = self.activation(out1)
-        # out1 = F.interpolate(out1, size=(24, 24))
+        out1 = F.interpolate(out1, size=(24, 24))
 
         out2 = self.norm256(self.convT2d_256_256(out1))
-        # out2 = self.norm256(self.convT2d_256_256(out2))
+        out2 = self.norm256(self.convT2d_256_256(out2))
         out2 = self.norm128(self.convT2d_256_128(out2))
         out2 = self.activation(out2)
-        # out2 = F.interpolate(out2, size=(48, 48))
+        out2 = F.interpolate(out2, size=(48, 48))
 
         out3 = self.norm128(self.convT2d_128_128(out2))
-        # out3 = self.norm128(self.convT2d_128_128(out3))
+        out3 = self.norm128(self.convT2d_128_128(out3))
         out3 = self.norm66(self.convT2d_128_66(out3))
         out3 = self.activation(out3)
         # no need to interpolate because it is 66 x 66 x 66
 
         out4 = self.norm66(self.convT2d_66_66(out3))
-        # out4 = self.norm66(self.convT2d_66_66(out4))
-        # out4 = self.norm66(self.convT2d_66_66(out4))
+        out4 = self.norm66(self.convT2d_66_66(out4))
+        out4 = self.norm66(self.convT2d_66_66(out4))
         out4 = self.activation(out4)
-        # out4 = F.interpolate(out4, size=(256, 256))
+        out4 = F.interpolate(out4, size=(256, 256))
 
         return out4
 

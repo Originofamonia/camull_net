@@ -137,8 +137,9 @@ class FcmNormalize:
         self.fcm_norm = FCMNormalize(tissue_type="wm")
 
     def __call__(self, image):
-        data = torch.from_numpy(image)
         # data -= 7392.85  # mu
         # data /= 20195.98  # std
-        data = self.fcm_norm(data, modality="t1")
+        data = self.fcm_norm(image, modality="t1")
+        data = torch.from_numpy(data)
+
         return data
