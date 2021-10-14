@@ -148,7 +148,7 @@ class Decoder2D(nn.Module):
             in_channels=self.in_channels[0],
             out_channels=self.out_channels[0],
             kernel_size=self.kernel_size,
-            stride=self.stride,
+            stride=1,
             padding_mode=self.padding_mode, )
         self.convT2d_512_256 = nn.ConvTranspose2d(
             in_channels=self.in_channels[0],
@@ -218,10 +218,10 @@ class Decoder2D(nn.Module):
         out3 = self.activation(out3)
         # no need to interpolate because it is 66 x 66 x 66
 
-        out4 = self.norm66(self.convT2d_66_66(out3))
+        # out4 = self.norm66(self.convT2d_66_66(out3))
         # out4 = self.norm66(self.convT2d_66_66(out4))
         # out4 = self.norm66(self.convT2d_66_66(out4))
-        out4 = self.activation(out4)
+        out4 = self.activation(out3)
         # out4 = F.interpolate(out4, size=(256, 256))
 
         return out4
