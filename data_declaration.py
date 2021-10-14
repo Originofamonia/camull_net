@@ -10,6 +10,7 @@ import pandas as pd
 
 import torch
 from torch.utils.data import Dataset, DataLoader
+from intensity_normalization.normalize.fcm import FCMNormalize
 
 
 class Task(Enum):
@@ -132,9 +133,12 @@ class FcmNormalize:
     try FCM-based WM-based normalization
     (assuming you have access to a T1-w image for all the time-points)
     """
+    def __init__(self):
+        self.fcm_norm = FCMNormalize(tissue_type="wm")
 
     def __call__(self, image):
         data = torch.from_numpy(image)
-        data -= 7392.85  # mu
-        data /= 20195.98  # std
+        # data -= 7392.85  # mu
+        # data /= 20195.98  # std
+        data = self.fcm_norm(data, modality="t1")
         return data
