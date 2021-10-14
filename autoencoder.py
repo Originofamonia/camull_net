@@ -218,10 +218,10 @@ class Decoder2D(nn.Module):
         out3 = self.activation(out3)
         # no need to interpolate because it is 66 x 66 x 66
 
-        # out4 = self.norm66(self.convT2d_66_66(out3))
+        out4 = self.norm66(self.convT2d_66_66(out3))
         # out4 = self.norm66(self.convT2d_66_66(out4))
         # out4 = self.norm66(self.convT2d_66_66(out4))
-        out4 = self.activation(out3)
+        out4 = self.activation(out4)
         # out4 = F.interpolate(out4, size=(256, 256))
 
         return out4
