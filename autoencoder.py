@@ -24,23 +24,7 @@ import pandas as pd
 from data_declaration import Task
 from loader_helper import LoaderHelper
 
-
-# class CustomizedDataset(Dataset):
-#     def __init__(self, data_root):
-#         self.samples = []
-#
-#         for item in glob(os.path.join(data_root, '*.nii.gz')):
-#             self.samples.append(item)
-#
-#     def __len__(self):
-#         return len(self.samples)
-#
-#     def __getitem__(self, idx):
-#         temp = load_fmri(self.samples[idx]).get_data()
-#         temp[temp < scoreatpercentile(temp.flatten(), 2)] = 0
-#         max_weight = temp.max()
-#         temp = temp / max_weight
-#         return temp, max_weight
+# os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 
 class Encoder2D(nn.Module):
@@ -272,9 +256,10 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, log_var)
 
         # decoding
-        x = F.relu(self.dec1(z))
-        reconstruction = torch.sigmoid(self.dec2(x))
+        # x = F.relu(self.dec1(z))
+        reconstruction = self.decoder(z)
         return reconstruction, mu, log_var
+
 
 def createLossAndOptimizer(net, learning_rate=1e-3):
     # Loss function
@@ -287,19 +272,19 @@ def createLossAndOptimizer(net, learning_rate=1e-3):
     return loss, optimizer
 
 
-def train_loop(net, lr, dataloader, device, n_epochs):
+def train_ae(args, net, dataloader):
     """
-    A for-loop of train the autoencoder for 1 epoch
+    train the autoencoder
     """
-    loss_func, optimizer = createLossAndOptimizer(net, learning_rate=lr)
+    loss_func, optimizer = createLossAndOptimizer(net, learning_rate=args.lr)
     pbar = tqdm(dataloader)
-    for epoch in range(n_epochs):
+    for epoch in range(args.n_epochs):
         train_loss = 0.
         net.train()
         for ii, batch in enumerate(pbar):
             # if ii + 1 < len(dataloader):
             # load the data to memory
-            batch = tuple(item.to(device) for item in batch)
+            batch = tuple(item.to(args.device) for item in batch)
             batch_x, batch_y = batch
             # one of the most important step, reset the gradients
             optimizer.zero_grad()
@@ -317,11 +302,11 @@ def train_loop(net, lr, dataloader, device, n_epochs):
             # record the training loss of a mini-batch
             train_loss += loss_batch.item()
         print(
-            f'Epoch {epoch}/{n_epochs},loss = {train_loss / (ii + 1):.3f}')
+            f'Epoch {epoch}/{args.n_epochs},loss = {train_loss / (ii + 1):.3f}')
     return net
 
 
-def validation_loop(model, dataloader, device):
+def evaluate_ae(args, model, test_dl):
     """
     infer features from AE and then classify by logistic regression
     """
@@ -331,9 +316,9 @@ def validation_loop(model, dataloader, device):
     labels = []
     valid_loss = 0.
     with torch.no_grad():
-        for ii, batch in tqdm(enumerate(dataloader)):
+        for ii, batch in tqdm(enumerate(test_dl)):
             # load the data to memory
-            batch = tuple(item.to(device) for item in batch)
+            batch = tuple(item.to(args.device) for item in batch)
             batch_x, batch_y = batch
             # compute the outputs
             feat = model.encoder(batch_x)
@@ -363,22 +348,27 @@ def main():
     saving_name = 'results/autoencoder2D.pt'
     parser = ArgumentParser()
     parser.add_argument('--gpus', type=int, default=None)
+    parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--lr', type=float, default=1e-4)
+    parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument('--seed', type=int, default=444)
+    parser.add_argument('--n_epochs', type=int, default=100)
 
     args = parser.parse_args()
-    batch_size = 2
-    lr = 1e-4  # was 1e-5
-    n_epochs = 100
-    seed = 444
-    print(f'set up random seeds: {seed}')
-    torch.manual_seed(seed)
+    # batch_size = 4
+    # lr = 1e-4  # was 1e-5
+    # n_epochs = 100
+    # seed = 444
+    print(f'set up random seeds: {args.seed}')
+    torch.manual_seed(args.seed)
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-        torch.cuda.manual_seed(seed)
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f'device: {device}')
+        torch.cuda.manual_seed(args.seed)
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f'device: {args.device}')
     print('set up data loaders')
     ld_helper = LoaderHelper(task=Task.CN_v_AD)
-    train_dl = ld_helper.get_train_dl(batch_size=batch_size)
+    train_dl = ld_helper.get_train_dl(batch_size=args.batch_size)
     test_dl = ld_helper.get_test_dl(batch_size=1)
     print('set up model')
     encoder = Encoder2D()
@@ -387,7 +377,7 @@ def main():
         [('encoder', encoder),
          ('decoder', decoder),
          ]
-    )).to(device)
+    )).to(args.device)
     model.double()
     # if os.path.exists(saving_name.replace(".pth", ".csv")):
     #     model.load_state_dict(torch.load(saving_name))
@@ -407,10 +397,10 @@ def main():
     best_valid_loss = torch.from_numpy(np.array(np.inf))
     # stp = 1
 
-    model = train_loop(model, lr, train_dl, device, n_epochs)
+    model = train_ae(args, model, train_dl)
     # validation
     print('validating ...')
-    valid_loss = validation_loop(model, test_dl, device)
+    valid_loss = evaluate_ae(args, model, test_dl)
     torch.save(model.state_dict(), saving_name)
     print('saving model')
 
