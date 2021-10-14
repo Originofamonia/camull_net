@@ -5,7 +5,7 @@ https://github.com/nmningmei/BOLD5000_autoencoder/blob/master/scripts/3.1.simple
 import os
 from glob import glob
 from tqdm import tqdm
-from torch.utils.data import Dataset
+from argparse import ArgumentParser
 from sklearn.linear_model import LogisticRegression
 import pickle
 
@@ -329,10 +329,13 @@ def validation_loop(model, dataloader, device):
 
 def main():
     saving_name = 'results/autoencoder2D.pt'
+    parser = ArgumentParser()
+    parser.add_argument('--gpus', type=int, default=None)
 
+    args = parser.parse_args()
     batch_size = 2
     lr = 1e-4  # was 1e-5
-    n_epochs = 1
+    n_epochs = 100
     seed = 444
     print(f'set up random seeds: {seed}')
     torch.manual_seed(seed)
