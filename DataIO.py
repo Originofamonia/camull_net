@@ -23,7 +23,7 @@ def main():
             stds.append(normed_img.std(axis=(0, 1, 2)))
             # OrthoSlicer3D(img).show()  # uncommnet if u want to visualize the MRI image
             # print('img dimension is ', img.shape)
-            # np.save(img_name[0:-7], img)  # save as numpy format
+            np.save(os.path.join('data', img_name[0:-7]), normed_img)  # save as numpy format
             # img_numpy = np.load(img_name[0:-7] + '.npy')  # load the npy file
         else:
             continue
