@@ -3,12 +3,14 @@ import nibabel as nib
 import os
 from nibabel.viewers import OrthoSlicer3D
 import numpy as np
+from intensity_normalization.normalize.fcm import FCMNormalize
 
 
 def main():
     data_path = '/home/qiyuan/2021fall/camull_net/data'
 
     img_names = os.listdir(data_path)
+    fcm_norm = FCMNormalize(tissue_type="wm")
     mus = []
     stds = []
     for img_name in img_names:
@@ -16,6 +18,7 @@ def main():
         if img_name[-2:] == 'gz':
             img = nib.load(os.path.join(
                 data_path, img_name)).get_fdata()  # load the MRI file
+            normed_img = fcm_norm(img, modality="t1")
             mus.append(img.mean(axis=(0, 1, 2)))
             stds.append(img.std(axis=(0, 1, 2)))
             OrthoSlicer3D(img).show()  # uncommnet if u want to visualize the MRI image

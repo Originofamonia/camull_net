@@ -134,6 +134,7 @@ class FcmNormalize:
     """
 
     def __call__(self, image):
-        mri_t = torch.from_numpy(image)
-        # mri_t = mri_t.unsqueeze(0)
-        return mri_t
+        data = torch.from_numpy(image)
+        data -= 7392.85  # mu
+        data /= 20195.98  # std
+        return data
