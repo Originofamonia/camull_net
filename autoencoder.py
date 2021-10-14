@@ -306,8 +306,8 @@ def validation_loop(model, dataloader, device):
             # compute the outputs
             feat = model.encoder(batch_x)
             print(feat.size())
-            feats.append(feat.detach().cpu().numpy())
-            labels.append(batch_y.detach().cpu().numpy())
+            feats.append(feat.squeeze().detach().cpu().numpy())
+            labels.append(batch_y.squeeze().detach().cpu().numpy())
             outputs = model.decoder(feat)
             # compute the losses
             loss_batch = loss_func(outputs, batch_x)
