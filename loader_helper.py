@@ -93,22 +93,22 @@ class LoaderHelper:
 
         self.indices = fold_indices
 
-    def make_loaders(self, shuffle=True):
-        """Makes the loaders"""
-        fold_indices = self.indices
-
-        for k in range(5):
-            train_ds = Subset(self.dataset, fold_indices[k][0])
-            test_ds = Subset(self.dataset, fold_indices[k][1])
-
-            train_dl = DataLoader(train_ds, batch_size=4, shuffle=shuffle,
-                                  num_workers=4, drop_last=True)
-            test_dl = DataLoader(test_ds, batch_size=4, shuffle=shuffle,
-                                 num_workers=4, drop_last=True)
-
-        print(len(test_ds))
-
-        return train_dl, test_dl
+    # def make_loaders(self, shuffle=True):
+    #     """Makes the loaders"""
+    #     fold_indices = self.indices
+    #
+    #     for k in range(5):
+    #         train_ds = Subset(self.dataset, fold_indices[k][0])
+    #         test_ds = Subset(self.dataset, fold_indices[k][1])
+    #
+    #         train_dl = DataLoader(train_ds, batch_size=4, shuffle=shuffle,
+    #                               num_workers=4, drop_last=True)
+    #         test_dl = DataLoader(test_ds, batch_size=4, shuffle=shuffle,
+    #                              num_workers=4, drop_last=True)
+    #
+    #     print(len(test_ds))
+    #
+    #     return train_dl, test_dl
 
     def get_train_dl(self, batch_size=2, shuffle=True):
 
