@@ -4,10 +4,13 @@ import datetime
 import uuid
 from tqdm import tqdm
 import pickle
+import math
+from argparse import ArgumentParser
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim import lr_scheduler
 
 from data_declaration import Task
 from loader_helper import LoaderHelper
@@ -71,16 +74,19 @@ def build_arch(device):
     return net
 
 
-def train_loop(model, train_dl, epochs, device):
+def train_loop(args, model, train_dl):
     """Function containing the neural net model training loop"""
-    optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=5e-5)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     loss_function = nn.BCELoss()
     model.train()
+    lf = lambda x: ((1 + math.cos(x * math.pi / args.n_epochs)) / 2) * (
+            1 - args.lrf) + args.lrf  # cosine
+    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
 
-    for i in range(epochs):
+    for i in range(args.n_epochs):
         pbar = tqdm(train_dl)
         for _, batch in enumerate(pbar):
-            batch = tuple(item.to(device) for item in batch)
+            batch = tuple(item.to(args.device) for item in batch)
             batch_x, batch_y = batch
             optimizer.zero_grad()
             outputs = model(batch_x)
@@ -88,40 +94,35 @@ def train_loop(model, train_dl, epochs, device):
             loss = loss_function(outputs, batch_y)
             loss.backward()
             optimizer.step()
-            pbar.set_description(f'E: {i}/{epochs}, loss: {loss.item():.3f}')
+            pbar.set_description(f'E: {i}/{args.n_epochs}, loss: {loss.item():.3f}')
+        scheduler.step()
 
     return model
 
 
-def train_camull(ld_helper, device, epochs, model=None):
+def train_camull(args, ld_helper):
     """The function for training the camull network"""
-    task = ld_helper.get_task()
-    uuid_ = uuid.uuid4().hex
-    # model_cop = model
 
-    # for k_ind in range(k_folds):
+    model = build_arch(args.device)
 
-    if model is None:
-        model = build_arch(device)
-
-    train_dl = ld_helper.get_train_dl(batch_size=2)
+    train_dl = ld_helper.get_train_dl(batch_size=args.batch_size)
     test_dl = ld_helper.get_test_dl(batch_size=1)
-    model = train_loop(model, train_dl, epochs, device)
+    model = train_loop(args, model, train_dl)
     # save_weights(model, uuid_, fold=k_ind + 1, task=task)
-    evaluate(device, model, test_dl)
+    evaluate(args, model, test_dl)
 
     print("Completed train_camull.")
 
     return model
 
 
-def evaluate(device, model, test_dl):
+def evaluate(args, model, test_dl):
     model.eval()
     pbar = tqdm(test_dl)
     outputs = []
     targets = []
     for _, batch in enumerate(pbar):
-        batch = tuple(item.to(device) for item in batch)
+        batch = tuple(item.to(args.device) for item in batch)
         batch_x, batch_y = batch
         output = model(batch_x)
         outputs.append(output.item())
@@ -149,10 +150,22 @@ def start(ld_helper, device, epochs=40, model_uuid=None):
 
 def main():
     """Main function of the module."""
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    parser = ArgumentParser()
+    parser.add_argument('--gpus', type=int, default=None)
+    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--lrf', type=float, default=0.05)
+    parser.add_argument('--weight_decay', type=float, default=5e-4)
+    parser.add_argument('--device', type=str, default='cuda')
+    parser.add_argument('--seed', type=int, default=444)
+    parser.add_argument('--n_epochs', type=int, default=100)
+
+    args = parser.parse_args()
+    print(args)
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # CN v AD
     ld_helper = LoaderHelper(task=Task.CN_v_AD)
-    model = train_camull(ld_helper, device, epochs=40)
+    model = train_camull(args, ld_helper)
 
     # # transfer learning for pMCI v sMCI
     # ld_helper.change_task(Task.sMCI_v_pMCI)
